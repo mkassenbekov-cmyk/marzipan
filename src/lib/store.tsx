@@ -49,6 +49,7 @@ const mapTask = (r: Record<string, unknown>): Task => ({
   title: r.title as string,
   description: r.description as string,
   assignedTo: r.assigned_to as string,
+  assignee: r.assigned_to as string,
   assignedBy: r.assigned_by as string,
   dueDate: r.due_date as string,
   priority: r.priority as Task["priority"],
@@ -60,9 +61,11 @@ const mapComplaint = (r: Record<string, unknown>): Complaint => ({
   client: r.client as string,
   product: r.product as string,
   description: r.description as string,
+  reason: r.description as string,
   severity: r.severity as Complaint["severity"],
   status: r.status as Complaint["status"],
   assignedTo: r.assigned_to as string,
+  assignee: r.assigned_to as string,
   resolution: r.resolution as string,
   createdAt: r.created_at as string,
 });
@@ -70,10 +73,13 @@ const mapWriteOff = (r: Record<string, unknown>): WriteOff => ({
   id: r.id as string,
   product: r.product as string,
   quantity: r.quantity as number,
+  weight: r.quantity as number,
   unit: r.unit as string,
   reason: r.reason as string,
   zone: r.zone as string,
   responsible: r.responsible as string,
+  employee: r.responsible as string,
+  shift: r.shift as string,
   amount: r.amount as number,
   date: r.created_at as string,
 });
@@ -106,8 +112,11 @@ const mapCustomer = (r: Record<string, unknown>): Customer => ({
   phone: r.phone as string,
   type: r.type as Customer["type"],
   city: r.city as string,
+  address: r.address as string,
   contactPerson: r.contact_person as string,
   notes: r.notes as string,
+  note: r.notes as string,
+  status: r.status as Customer["status"],
 });
 const mapDebt = (r: Record<string, unknown>): Debt => ({
   id: r.id as string,
@@ -122,6 +131,7 @@ const mapInvoice = (r: Record<string, unknown>): Invoice => ({
   id: r.id as string,
   number: r.number as string,
   supplier: r.supplier as string,
+  supplierName: r.supplier as string,
   amount: r.amount as number,
   date: r.date as string,
   status: r.status as Invoice["status"],
@@ -132,6 +142,7 @@ const mapKaspiPayment = (r: Record<string, unknown>): KaspiPayment => ({
   amount: r.amount as number,
   date: r.date as string,
   sender: r.sender as string,
+  senderName: r.sender as string,
   description: r.description as string,
   status: r.status as KaspiPayment["status"],
   customerId: r.customer_id as string,
@@ -202,7 +213,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
 
   const addTask = useCallback(async (t: Omit<Task, "id">) => {
     const { data } = await supabase.from("tasks").insert({
-      title: t.title, description: t.description, assigned_to: t.assignedTo,
+      title: t.title, description: t.description, assigned_to: t.assignedTo ?? t.assignee,
       assigned_by: t.assignedBy, due_date: t.dueDate, priority: t.priority,
       status: t.status, zone: t.zone,
     }).select().single();
@@ -211,16 +222,16 @@ export function StoreProvider({ children }: { children: ReactNode }) {
 
   const addComplaint = useCallback(async (c: Omit<Complaint, "id">) => {
     const { data } = await supabase.from("complaints").insert({
-      client: c.client, product: c.product, description: c.description,
-      severity: c.severity, status: c.status, assigned_to: c.assignedTo,
+      client: c.client, product: c.product, description: c.description ?? c.reason,
+      severity: c.severity, status: c.status, assigned_to: c.assignedTo ?? c.assignee,
     }).select().single();
     if (data) setComplaints(p => [mapComplaint(data), ...p]);
   }, []);
 
   const addWriteOff = useCallback(async (w: Omit<WriteOff, "id">) => {
     const { data } = await supabase.from("writeoffs").insert({
-      product: w.product, quantity: w.quantity, unit: w.unit, reason: w.reason,
-      zone: w.zone, responsible: w.responsible, amount: w.amount,
+      product: w.product, quantity: w.quantity ?? w.weight, unit: w.unit ?? "кг", reason: w.reason,
+      zone: w.zone, responsible: w.responsible ?? w.employee, shift: w.shift, amount: w.amount,
     }).select().single();
     if (data) setWriteOffs(p => [mapWriteOff(data), ...p]);
   }, []);
@@ -244,8 +255,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
 
   const addCustomer = useCallback(async (c: Omit<Customer, "id">) => {
     const { data } = await supabase.from("customers").insert({
-      name: c.name, phone: c.phone, type: c.type, city: c.city,
-      contact_person: c.contactPerson, notes: c.notes,
+      name: c.name, phone: c.phone, type: c.type, city: c.city, address: c.address,
+      contact_person: c.contactPerson, notes: c.notes ?? c.note, status: c.status,
     }).select().single();
     if (data) setCustomers(p => [mapCustomer(data), ...p]);
   }, []);
@@ -253,7 +264,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const addInvoice = useCallback(async (inv: Omit<Invoice, "id">) => {
     const isDuplicate = invoices.some(i => i.number === inv.number && i.supplier === inv.supplier);
     const { data } = await supabase.from("invoices").insert({
-      number: inv.number, supplier: inv.supplier, amount: inv.amount,
+      number: inv.number, supplier: inv.supplier ?? inv.supplierName, amount: inv.amount,
       date: inv.date, status: isDuplicate ? "duplicate" : inv.status, items: inv.items,
     }).select().single();
     if (data) setInvoices(p => [mapInvoice(data), ...p]);
@@ -261,8 +272,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
 
   const addKaspiPayment = useCallback(async (pay: Omit<KaspiPayment, "id">) => {
     const { data } = await supabase.from("kaspi_payments").insert({
-      amount: pay.amount, date: pay.date, sender: pay.sender,
-      description: pay.description, status: pay.status, customer_id: pay.customerId,
+      amount: pay.amount, date: pay.date, sender: pay.sender ?? pay.senderName,
+      description: pay.description ?? pay.note, status: pay.status, customer_id: pay.customerId,
     }).select().single();
     if (data) setKaspiPayments(p => [mapKaspiPayment(data), ...p]);
   }, []);
