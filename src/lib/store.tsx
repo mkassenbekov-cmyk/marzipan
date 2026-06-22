@@ -3,7 +3,7 @@ import { createContext, useContext, useState, useEffect, ReactNode, useCallback 
 import { supabase } from "@/lib/supabase";
 import type {
   Task, Complaint, WriteOff, PurchaseRequest, ShiftRecord, PhotoReport,
-  AIRecommendation, SalesData
+  AIRecommendation, SalesData, Employee, SalaryRecord
 } from "@/types";
 import type { Customer, Debt, Invoice, KaspiPayment, Receipt, PriceEntry, BudgetItem, WhatsAppMessage } from "@/types/business";
 
@@ -24,6 +24,10 @@ interface AppStore {
   prices: PriceEntry[];
   budgetItems: BudgetItem[];
   whatsappMessages: WhatsAppMessage[];
+  employees: Employee[];
+  addEmployee: (e: Omit<Employee, "id">) => Promise<void>;
+  updateEmployee: (id: string, patch: Partial<Employee>) => Promise<void>;
+  deleteEmployee: (id: string) => Promise<void>;
   addTask: (t: Omit<Task, "id">) => Promise<void>;
   addComplaint: (c: Omit<Complaint, "id">) => Promise<void>;
   addWriteOff: (w: Omit<WriteOff, "id">) => Promise<void>;
@@ -132,6 +136,19 @@ const mapKaspiPayment = (r: Record<string, unknown>): KaspiPayment => ({
   status: r.status as KaspiPayment["status"],
   customerId: r.customer_id as string,
 });
+const mapEmployee = (r: Record<string, unknown>): Employee => ({
+  id: r.id as string,
+  name: r.name as string,
+  position: r.position as string,
+  shiftType: r.shift_type as Employee["shiftType"],
+  shiftRate: Number(r.shift_rate ?? 0),
+  latePenalty: Number(r.late_penalty ?? 0),
+  absencePenalty: Number(r.absence_penalty ?? 0),
+  phone: r.phone as string,
+  active: r.active as boolean,
+  hiredAt: r.hired_at as string,
+  note: r.note as string,
+});
 
 export function StoreProvider({ children }: { children: ReactNode }) {
   const [tasks, setTasks] = useState<Task[]>([]);
@@ -150,11 +167,12 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const [prices] = useState<PriceEntry[]>([]);
   const [budgetItems] = useState<BudgetItem[]>([]);
   const [whatsappMessages] = useState<WhatsAppMessage[]>([]);
+  const [employees, setEmployees] = useState<Employee[]>([]);
 
   // Load all data on mount
   useEffect(() => {
     const load = async () => {
-      const [t, c, w, pr, sh, cu, d, inv, kp, sd] = await Promise.all([
+      const [t, c, w, pr, sh, cu, d, inv, kp, sd, emp] = await Promise.all([
         supabase.from("tasks").select("*").order("created_at", { ascending: false }),
         supabase.from("complaints").select("*").order("created_at", { ascending: false }),
         supabase.from("writeoffs").select("*").order("created_at", { ascending: false }),
@@ -165,6 +183,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         supabase.from("invoices").select("*").order("created_at", { ascending: false }),
         supabase.from("kaspi_payments").select("*").order("created_at", { ascending: false }),
         supabase.from("sales_data").select("*").order("date", { ascending: false }),
+        supabase.from("employees").select("*").order("name", { ascending: true }),
       ]);
       if (t.data) setTasks(t.data.map(mapTask));
       if (c.data) setComplaints(c.data.map(mapComplaint));
@@ -176,6 +195,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       if (inv.data) setInvoices(inv.data.map(mapInvoice));
       if (kp.data) setKaspiPayments(kp.data.map(mapKaspiPayment));
       if (sd.data) setSalesData(sd.data.map(r => ({ id: r.id, date: r.date, product: r.product, quantity: r.quantity, revenue: r.revenue, cost: r.cost })));
+      if (emp.data) setEmployees(emp.data.map(mapEmployee));
     };
     load();
   }, []);
@@ -251,6 +271,29 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     // receipts page uses local state for now
   }, []);
 
+  const addEmployee = useCallback(async (e: Omit<Employee, "id">) => {
+    const { data } = await supabase.from("employees").insert({
+      name: e.name, position: e.position, shift_type: e.shiftType,
+      shift_rate: e.shiftRate, late_penalty: e.latePenalty, absence_penalty: e.absencePenalty,
+      phone: e.phone, active: e.active, hired_at: e.hiredAt, note: e.note,
+    }).select().single();
+    if (data) setEmployees(p => [...p, mapEmployee(data)].sort((a, b) => a.name.localeCompare(b.name)));
+  }, []);
+
+  const updateEmployee = useCallback(async (id: string, patch: Partial<Employee>) => {
+    await supabase.from("employees").update({
+      name: patch.name, position: patch.position, shift_type: patch.shiftType,
+      shift_rate: patch.shiftRate, late_penalty: patch.latePenalty, absence_penalty: patch.absencePenalty,
+      phone: patch.phone, active: patch.active, hired_at: patch.hiredAt, note: patch.note,
+    }).eq("id", id);
+    setEmployees(p => p.map(e => e.id === id ? { ...e, ...patch } : e));
+  }, []);
+
+  const deleteEmployee = useCallback(async (id: string) => {
+    await supabase.from("employees").delete().eq("id", id);
+    setEmployees(p => p.filter(e => e.id !== id));
+  }, []);
+
   const updateTask = useCallback(async (id: string, patch: Partial<Task>) => {
     await supabase.from("tasks").update({
       title: patch.title, status: patch.status, priority: patch.priority,
@@ -270,7 +313,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     <StoreContext.Provider value={{
       tasks, complaints, writeOffs, purchaseRequests, shifts, photos,
       aiRecommendations, salesData, customers, debts, invoices,
-      kaspiPayments, receipts, prices, budgetItems, whatsappMessages,
+      kaspiPayments, receipts, prices, budgetItems, whatsappMessages, employees,
+      addEmployee, updateEmployee, deleteEmployee,
       addTask, addComplaint, addWriteOff, addPurchaseRequest, addShift,
       addCustomer, addInvoice, addKaspiPayment, addReceipt,
       updateTask, updateComplaint,

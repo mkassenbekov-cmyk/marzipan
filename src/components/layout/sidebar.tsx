@@ -9,7 +9,7 @@ import {
   ShoppingCart, Archive, Trash2, AlertCircle, Camera, BookOpen,
   ClipboardList, ChefHat, Lightbulb, FileText, Settings, LogOut, Star,
   CheckSquare, MessageCircle, ArrowDownToLine, DollarSign, Scale,
-  BarChart3, PiggyBank, TrendingDown, FileCheck, UserCheck, Receipt
+  BarChart3, PiggyBank, TrendingDown, FileCheck, UserCheck, Receipt, Wallet
 } from "lucide-react";
 
 interface NavItem {
@@ -47,6 +47,7 @@ const navItems: NavItem[] = [
   // Операции
   { href: "/shifts", label: "Смены", icon: <Clock size={16} />, group: "Операции" },
   { href: "/employees", label: "Сотрудники", icon: <Users size={16} />, group: "Операции", roles: ["owner", "director", "admin_chef"] },
+  { href: "/salary", label: "Зарплата", icon: <Wallet size={16} />, group: "Операции", roles: ["owner", "director", "admin_chef", "accountant"] },
   { href: "/writeoffs", label: "Списания", icon: <Trash2 size={16} />, group: "Операции" },
   { href: "/complaints", label: "Жалобы", icon: <AlertCircle size={16} />, group: "Операции" },
   { href: "/photos", label: "Фотоотчеты", icon: <Camera size={16} />, group: "Операции" },

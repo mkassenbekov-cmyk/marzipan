@@ -112,6 +112,34 @@ export interface AIRecommendation {
   createdAt: string;
 }
 
+export interface Employee {
+  id: string;
+  name: string;
+  position?: string;
+  shiftType?: "day" | "night";
+  shiftRate: number;
+  latePenalty: number;
+  absencePenalty: number;
+  phone?: string;
+  active: boolean;
+  hiredAt?: string;
+  note?: string;
+}
+
+export interface SalaryRecord {
+  id: string;
+  employeeId: string;
+  month: string;
+  shiftsCount: number;
+  latesCount: number;
+  absencesCount: number;
+  bonus: number;
+  gross: number;
+  penalties: number;
+  net: number;
+  finalized: boolean;
+}
+
 export interface SalesData {
   id?: string;
   date: string;
