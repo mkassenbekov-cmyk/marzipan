@@ -136,7 +136,7 @@ export default function BudgetPage() {
                     <td className="px-4 py-3 font-semibold text-[#1E1E1E]">{formatMoney(item.planned)}</td>
                     <td className="px-4 py-3 text-[#8A7E72]">{item.actual ? formatMoney(item.actual) : "—"}</td>
                     <td className="px-4 py-3 text-[#8A7E72]">{item.dueDate ?? "—"}</td>
-                    <td className="px-4 py-3"><Badge variant={statusMap[item.status].variant}>{statusMap[item.status].label}</Badge></td>
+                    <td className="px-4 py-3"><Badge variant={item.status ? statusMap[item.status]?.variant ?? "neutral" : "neutral"}>{item.status ? statusMap[item.status]?.label : "—"}</Badge></td>
                   </tr>
                 ))}
               </tbody>

@@ -1,45 +1,61 @@
 "use client";
-import { createContext, useContext, useState, ReactNode } from "react";
+import { createContext, useContext, useState, useEffect, ReactNode } from "react";
+import { supabase } from "@/lib/supabase";
 import type { User, UserRole } from "@/types";
 
-const USERS: User[] = [
-  { id: "1", name: "Мади", role: "owner" },
-  { id: "2", name: "Ерлан", role: "director" },
-  { id: "3", name: "Аскар", role: "admin_chef" },
-  { id: "4", name: "Ночной адм.", role: "night_admin" },
-  { id: "5", name: "Сборщик", role: "collector" },
-  { id: "6", name: "Заготовщик", role: "preparer" },
-  { id: "7", name: "Пекарь", role: "baker" },
-  { id: "8", name: "Уборщица", role: "cleaner" },
-  { id: "9", name: "Бухгалтер", role: "accountant" },
-];
+// Role mapping: email → role
+const EMAIL_ROLES: Record<string, { name: string; role: UserRole }> = {
+  "madi@marzipan.kz": { name: "Мади", role: "owner" },
+  "askar@marzipan.kz": { name: "Аскар", role: "admin_chef" },
+};
 
 interface AuthCtx {
   user: User | null;
-  login: (role: UserRole) => void;
+  loading: boolean;
+  loginWithEmail: (email: string, password: string) => Promise<string | null>;
   logout: () => void;
-  allUsers: User[];
 }
 
 const AuthContext = createContext<AuthCtx>({
   user: null,
-  login: () => {},
+  loading: true,
+  loginWithEmail: async () => null,
   logout: () => {},
-  allUsers: USERS,
 });
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  const mapSupabaseUser = (supaUser: { id: string; email?: string }): User | null => {
+    const email = supaUser.email ?? "";
+    const mapping = EMAIL_ROLES[email];
+    if (!mapping) return null;
+    return { id: supaUser.id, name: mapping.name, role: mapping.role };
+  };
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session?.user) setUser(mapSupabaseUser(session.user));
+      setLoading(false);
+    });
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ? mapSupabaseUser(session.user) : null);
+    });
+    return () => subscription.unsubscribe();
+  }, []);
+
+  const loginWithEmail = async (email: string, password: string): Promise<string | null> => {
+    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    if (error) return error.message;
+    if (!EMAIL_ROLES[email]) return "Пользователь не найден в системе";
+    return null;
+  };
+
+  const logout = () => supabase.auth.signOut();
 
   return (
-    <AuthContext.Provider
-      value={{
-        user,
-        login: (role) => setUser(USERS.find((u) => u.role === role) ?? USERS[0]),
-        logout: () => setUser(null),
-        allUsers: USERS,
-      }}
-    >
+    <AuthContext.Provider value={{ user, loading, loginWithEmail, logout }}>
       {children}
     </AuthContext.Provider>
   );

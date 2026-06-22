@@ -105,14 +105,14 @@ export default function WriteOffsPage() {
                   <div>
                     <div className="flex items-center gap-2 mb-1">
                       <p className="font-semibold text-[#1E1E1E]">{w.product}</p>
-                      <Badge variant={statusMap[w.status]?.variant ?? "warning"}>{statusMap[w.status]?.label}</Badge>
+                      <Badge variant={w.status ? (statusMap[w.status]?.variant ?? "warning") : "warning"}>{w.status ? statusMap[w.status]?.label : "—"}</Badge>
                     </div>
                     <p className="text-xs text-[#8A7E72]">{w.reason}</p>
                     <p className="text-xs text-[#8A7E72] mt-0.5">{w.employee} · {w.shift} · {w.date}</p>
                   </div>
                   <div className="text-right flex-shrink-0">
                     <p className="text-lg font-bold text-red-600">{w.amount > 0 ? formatMoney(w.amount) : "—"}</p>
-                    {w.weight > 0 && <p className="text-xs text-[#8A7E72]">{w.weight} кг</p>}
+                    {(w.weight ?? 0) > 0 && <p className="text-xs text-[#8A7E72]">{w.weight} кг</p>}
                   </div>
                 </div>
               </div>

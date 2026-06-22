@@ -6,12 +6,18 @@ import { Sidebar } from "./sidebar";
 import { Topbar } from "./topbar";
 
 export function PageShell({ title, children }: { title: string; children: React.ReactNode }) {
-  const { user } = useAuth();
+  const { user, loading } = useAuth();
   const router = useRouter();
 
   useEffect(() => {
-    if (!user) router.push("/");
-  }, [user, router]);
+    if (!loading && !user) router.push("/");
+  }, [user, loading, router]);
+
+  if (loading) return (
+    <div className="min-h-screen bg-[#F7F3EC] flex items-center justify-center">
+      <div className="w-6 h-6 border-2 border-[#C8A45D] border-t-transparent rounded-full animate-spin" />
+    </div>
+  );
 
   if (!user) return null;
 

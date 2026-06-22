@@ -18,35 +18,46 @@ export interface MetricCard {
 export interface Task {
   id: string;
   title: string;
-  assignee: string;
+  description?: string;
+  assignedTo?: string;
+  assignedBy?: string;
+  assignee?: string;
   dueDate: string;
   priority: "high" | "medium" | "low";
   status: "open" | "in_progress" | "done" | "overdue";
+  zone?: string;
   source?: string;
 }
 
 export interface Complaint {
   id: string;
   client: string;
-  product: string;
-  reason: string;
-  assignee: string;
+  product?: string;
+  reason?: string;
+  description?: string;
+  assignedTo?: string;
+  assignee?: string;
+  severity?: "low" | "medium" | "high" | "critical";
   status: "new" | "assigned" | "in_progress" | "review" | "closed" | "overdue";
-  createdAt: string;
+  createdAt?: string;
   resolution?: string;
 }
 
 export interface WriteOff {
   id: string;
   product: string;
-  weight: number;
+  weight?: number;
+  quantity?: number;
+  unit?: string;
   amount: number;
   reason: string;
-  employee: string;
-  shift: string;
-  date: string;
+  employee?: string;
+  responsible?: string;
+  zone?: string;
+  shift?: string;
+  date?: string;
   photo?: string;
-  status: "pending" | "approved" | "reviewed";
+  status?: "pending" | "approved" | "reviewed";
 }
 
 export interface PurchaseRequest {
@@ -83,8 +94,9 @@ export interface PhotoReport {
   id: string;
   type: "zone" | "product" | "prep" | "labels" | "fridge" | "writeoff" | "delivery" | "cleaning" | "readiness";
   employee: string;
-  shift: string;
-  date: string;
+  shift?: string;
+  date?: string;
+  zone?: string;
   photos: string[];
   status: "pending" | "approved" | "rejected";
   note?: string;
@@ -101,8 +113,12 @@ export interface AIRecommendation {
 }
 
 export interface SalesData {
+  id?: string;
   date: string;
   revenue: number;
-  kaspi: number;
-  orders: number;
+  kaspi?: number;
+  orders?: number;
+  product?: string;
+  quantity?: number;
+  cost?: number;
 }

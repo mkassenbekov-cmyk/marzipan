@@ -8,10 +8,11 @@ import { formatMoney } from "@/lib/utils";
 import type { Receipt } from "@/types/business";
 import { ArrowDownToLine, Plus, X, AlertTriangle } from "lucide-react";
 
-const statusMap = {
-  pending: { label: "Ожидает", variant: "warning" as const },
-  confirmed: { label: "Принят", variant: "success" as const },
-  discrepancy: { label: "Расхождение", variant: "danger" as const },
+const statusMap: Record<string, { label: string; variant: "neutral" | "warning" | "success" | "danger" | "accent" }> = {
+  pending: { label: "Ожидает", variant: "warning" },
+  ok: { label: "ОК", variant: "success" },
+  confirmed: { label: "Принят", variant: "success" },
+  discrepancy: { label: "Расхождение", variant: "danger" },
 };
 
 export default function ReceiptsPage() {
@@ -142,7 +143,7 @@ export default function ReceiptsPage() {
                     <p className="text-xs text-[#8A7E72]">{r.date} · Принял: {r.receivedBy || "—"}</p>
                     {r.discrepancyNote && <p className="text-xs text-red-600 mt-1">⚠ {r.discrepancyNote}</p>}
                   </div>
-                  <p className="font-bold text-[#1E1E1E]">{formatMoney(r.totalAmount)}</p>
+                  <p className="font-bold text-[#1E1E1E]">{formatMoney(r.totalAmount ?? 0)}</p>
                 </div>
                 {r.items.length > 0 && (
                   <div className="mt-3 pt-3 border-t border-[#F7F3EC]">

@@ -8,13 +8,14 @@ import { formatMoney } from "@/lib/utils";
 import type { Invoice } from "@/types/business";
 import { FileCheck, Plus, X, AlertTriangle, Upload } from "lucide-react";
 
-const statusMap = {
-  draft: { label: "Черновик", variant: "neutral" as const },
-  received: { label: "Получена", variant: "accent" as const },
-  verified: { label: "Проверена", variant: "success" as const },
-  paid: { label: "Оплачена", variant: "success" as const },
-  dispute: { label: "Спорная", variant: "danger" as const },
-  duplicate: { label: "Дубль", variant: "danger" as const },
+const statusMap: Record<string, { label: string; variant: "neutral" | "accent" | "success" | "danger" | "warning" }> = {
+  draft: { label: "Черновик", variant: "neutral" },
+  pending: { label: "Ожидает", variant: "neutral" },
+  received: { label: "Получена", variant: "accent" },
+  verified: { label: "Проверена", variant: "success" },
+  paid: { label: "Оплачена", variant: "success" },
+  dispute: { label: "Спорная", variant: "danger" },
+  duplicate: { label: "Дубль", variant: "danger" },
 };
 
 export default function InvoicesPage() {

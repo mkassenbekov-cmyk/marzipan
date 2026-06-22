@@ -129,7 +129,7 @@ export default function PricesPage() {
                 {prices.map((p) => (
                   <tr key={p.id} className={`hover:bg-[#F7F3EC] ${p.margin !== undefined && p.margin < 20 ? "bg-yellow-50" : ""}`}>
                     <td className="px-4 py-3 font-medium text-[#1E1E1E]">{p.productName}</td>
-                    <td className="px-4 py-3 font-semibold text-[#1E1E1E]">{formatMoney(p.basePrice)}</td>
+                    <td className="px-4 py-3 font-semibold text-[#1E1E1E]">{formatMoney(p.basePrice ?? p.price ?? 0)}</td>
                     <td className="px-4 py-3 text-[#8A7E72]">{p.costPrice ? formatMoney(p.costPrice) : "—"}</td>
                     <td className="px-4 py-3">
                       {p.margin !== undefined ? (

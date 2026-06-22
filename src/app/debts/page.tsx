@@ -6,16 +6,17 @@ import { useStore } from "@/lib/store";
 import { formatMoney } from "@/lib/utils";
 import { Receipt, AlertTriangle } from "lucide-react";
 
-const statusMap = {
-  current: { label: "Текущий", variant: "neutral" as const },
-  overdue: { label: "Просрочен", variant: "danger" as const },
-  partial: { label: "Частичная", variant: "warning" as const },
-  paid: { label: "Оплачен", variant: "success" as const },
+const statusMap: Record<string, { label: string; variant: "neutral" | "danger" | "warning" | "success" | "accent" }> = {
+  current: { label: "Текущий", variant: "neutral" },
+  active: { label: "Активный", variant: "neutral" },
+  overdue: { label: "Просрочен", variant: "danger" },
+  partial: { label: "Частичная", variant: "warning" },
+  paid: { label: "Оплачен", variant: "success" },
 };
 
 export default function DebtsPage() {
   const { debts } = useStore();
-  const overdueTotal = debts.filter(d => d.status === "overdue").reduce((s, d) => s + d.overdueAmount, 0);
+  const overdueTotal = debts.filter(d => d.status === "overdue").reduce((s, d) => s + (d.overdueAmount ?? 0), 0);
   const totalDebt = debts.reduce((s, d) => s + d.amount, 0);
 
   return (
@@ -71,11 +72,11 @@ export default function DebtsPage() {
                   <tr key={d.id} className={`hover:bg-[#F7F3EC] transition-colors ${d.status === "overdue" ? "bg-red-50" : ""}`}>
                     <td className="px-4 py-3 font-medium text-[#1E1E1E]">{d.customerName}</td>
                     <td className="px-4 py-3 font-semibold text-[#1E1E1E]">{formatMoney(d.amount)}</td>
-                    <td className={`px-4 py-3 font-semibold ${d.overdueAmount > 0 ? "text-red-600" : "text-[#8A7E72]"}`}>
-                      {d.overdueAmount > 0 ? formatMoney(d.overdueAmount) : "—"}
+                    <td className={`px-4 py-3 font-semibold ${(d.overdueAmount ?? 0) > 0 ? "text-red-600" : "text-[#8A7E72]"}`}>
+                      {(d.overdueAmount ?? 0) > 0 ? formatMoney(d.overdueAmount ?? 0) : "—"}
                     </td>
                     <td className="px-4 py-3 text-[#8A7E72]">{d.lastOrderDate ?? "—"}</td>
-                    <td className="px-4 py-3"><Badge variant={statusMap[d.status].variant}>{statusMap[d.status].label}</Badge></td>
+                    <td className="px-4 py-3"><Badge variant={statusMap[d.status]?.variant ?? "neutral"}>{statusMap[d.status]?.label}</Badge></td>
                   </tr>
                 ))}
               </tbody>

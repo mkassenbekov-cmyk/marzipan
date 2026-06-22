@@ -15,7 +15,7 @@ export function OwnerDashboard() {
 
   const todayRevenue = salesData.reduce((s, d) => s + d.revenue, 0);
   const todayKaspi = kaspiPayments.filter(p => p.status !== "duplicate").reduce((s, p) => s + p.amount, 0);
-  const overdueDebts = debts.filter(d => d.status === "overdue").reduce((s, d) => s + d.overdueAmount, 0);
+  const overdueDebts = debts.filter(d => d.status === "overdue").reduce((s, d) => s + (d.overdueAmount ?? 0), 0);
   const openComplaints = complaints.filter(c => c.status !== "closed").length;
   const unmatchedPayments = kaspiPayments.filter(p => p.status === "unmatched").length;
   const openTasks = tasks.filter(t => t.status !== "done").length;

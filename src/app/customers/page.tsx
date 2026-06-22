@@ -96,7 +96,7 @@ export default function CustomersPage() {
                   <div>
                     <div className="flex items-center gap-2">
                       <p className="font-semibold text-[#1E1E1E]">{c.name}</p>
-                      <Badge variant={statusVariant[c.status]}>{statusLabel[c.status]}</Badge>
+                      <Badge variant={c.status ? (statusVariant[c.status] ?? "neutral") : "neutral"}>{c.status ? statusLabel[c.status] : "—"}</Badge>
                     </div>
                     {c.phone && <div className="flex items-center gap-1.5 mt-1.5 text-xs text-[#8A7E72]"><Phone size={11} />{c.phone}</div>}
                     {c.address && <div className="flex items-center gap-1.5 mt-1 text-xs text-[#8A7E72]"><MapPin size={11} />{c.address}</div>}

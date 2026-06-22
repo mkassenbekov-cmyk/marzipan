@@ -9,7 +9,7 @@ import { MessageCircle, Plus, X, AlertTriangle } from "lucide-react";
 
 const typeLabel: Record<WhatsAppMessage["type"], string> = {
   order: "Заказ", payment: "Оплата", invoice: "Накладная", complaint: "Жалоба",
-  stock: "Остаток", report: "Отчёт", unknown: "Неизвестно",
+  stock: "Остаток", report: "Отчёт", unknown: "Неизвестно", other: "Другое",
 };
 const statusMap = {
   new: { label: "Новое", variant: "accent" as const },
