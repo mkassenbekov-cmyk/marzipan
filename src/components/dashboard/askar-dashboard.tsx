@@ -1,10 +1,11 @@
 "use client";
+import { useState } from "react";
 import { useStore } from "@/lib/store";
 import { Badge } from "@/components/ui/badge";
 import {
   ShoppingCart, Archive, Clock, Camera, CheckSquare, ArrowRight,
   AlertTriangle, PackageCheck, ClipboardCheck, Moon, Sun, Thermometer,
-  Scale, FileText, MessageSquare, TrendingDown, ChevronRight
+  Scale, FileText, MessageSquare, TrendingDown, ChevronRight, Plus
 } from "lucide-react";
 import Link from "next/link";
 
@@ -53,7 +54,19 @@ function CheckRow({ label, ok, href }: { label: string; ok: boolean | null; href
 }
 
 export function AskarDashboard() {
-  const { purchaseRequests, shifts, tasks, photos, writeOffs, complaints, invoices, kaspiPayments, customers } = useStore();
+  const { purchaseRequests, shifts, tasks, photos, writeOffs, complaints, invoices, kaspiPayments, customers, addTask } = useStore();
+
+  const [taskTitle, setTaskTitle] = useState("");
+  const [sending, setSending] = useState(false);
+  const addSelfTask = async () => {
+    if (!taskTitle.trim()) return;
+    setSending(true);
+    await addTask({
+      title: taskTitle.trim(), assignedTo: "Аскар", assignedBy: "Аскар",
+      dueDate: new Date().toISOString().split("T")[0], priority: "medium", status: "open",
+    });
+    setTaskTitle(""); setSending(false);
+  };
 
   const today = new Date().toISOString().split("T")[0];
   const todayShifts = shifts.filter(s => s.date === today);
@@ -123,6 +136,27 @@ export function AskarDashboard() {
             <p className={`text-2xl font-bold mt-1.5 ${s.value === 0 ? "text-[#C8C0B4]" : s.alert ? "text-red-600" : "text-[#1E1E1E]"}`}>{s.value}</p>
           </Link>
         ))}
+      </div>
+
+      {/* Quick task */}
+      <div className="bg-white rounded-xl border border-[#E5DED2] p-4">
+        <div className="flex items-center gap-2 mb-2">
+          <Plus size={15} className="text-[#C8A45D]" />
+          <p className="text-sm font-semibold text-[#1E1E1E]">Поставить задачу</p>
+        </div>
+        <div className="flex gap-2">
+          <input
+            value={taskTitle}
+            onChange={e => setTaskTitle(e.target.value)}
+            onKeyDown={e => e.key === "Enter" && addSelfTask()}
+            placeholder="Задача по цеху или себе на сегодня..."
+            className="flex-1 border border-[#E5DED2] rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-[#C8A45D]/30"
+          />
+          <button onClick={addSelfTask} disabled={sending || !taskTitle.trim()}
+            className="px-3 py-2 bg-[#2A2521] text-white rounded-lg text-sm font-medium hover:bg-[#3d3530] disabled:opacity-40 flex items-center gap-1">
+            <Plus size={15} /> Добавить
+          </button>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
